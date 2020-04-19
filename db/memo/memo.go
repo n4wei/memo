@@ -52,6 +52,14 @@ func (this *memo) Set(key string, data []byte) bool {
 	return true
 }
 
+func (this *memo) GetKeys() []string {
+	keys := make([]string, 0, len(this.store))
+	for key := range this.store {
+		keys = append(keys, key)
+	}
+	return keys
+}
+
 func (this *memo) Close() error {
 	return this.SaveData()
 }
