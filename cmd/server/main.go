@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/n4wei/memo/api"
+	"github.com/n4wei/memo/db"
 	"github.com/n4wei/memo/db/memo"
 	"github.com/n4wei/memo/lib/logger"
 )
@@ -24,19 +25,25 @@ func main() {
 
 	logger := logger.New()
 
+	dbClient, err := memo.New(logger)
+	if err != nil {
+		logger.Errorf("error starting db client: %v", err)
+		os.Exit(1)
+	}
+
 	server := &http.Server{
 		Addr:    ":" + portStr,
-		Handler: api.NewController(memo.New(logger), logger),
+		Handler: api.NewController(dbClient, logger),
 	}
 
 	idleConnsClosed := make(chan struct{})
-	go handleInterrupt(server, logger, idleConnsClosed)
+	go handleInterrupt(server, dbClient, logger, idleConnsClosed)
 
-	logger.Printf("starting server on %s...", portStr)
+	logger.Printf("starting server on port %s...", portStr)
 
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
-		logger.Errorf("server error: %v", err)
+		logger.Errorf("error starting server: %v", err)
 		os.Exit(1)
 	}
 
@@ -44,19 +51,24 @@ func main() {
 	logger.Println("server shutdown successful. byebye")
 }
 
-func handleInterrupt(server *http.Server, logger logger.Logger, idleConnsClosed chan struct{}) {
+func handleInterrupt(server *http.Server, dbClient db.Client, logger logger.Logger, idleConnsClosed chan struct{}) {
 	sigint := make(chan os.Signal, 1)
 	signal.Notify(sigint, os.Interrupt)
 	<-sigint
 	logger.Println("caught interrupt, shutting down server...")
 
+	err := dbClient.Close()
+	if err != nil {
+		logger.Errorf("error closing db: %v", err)
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), defaultServerShutdownTimeout)
 	defer cancel()
 
-	err := server.Shutdown(ctx)
+	err = server.Shutdown(ctx)
 	if err != nil {
 		// error from closing listeners, or context timeout:
-		logger.Errorf("server shutdown error: %v", err)
+		logger.Errorf("error shutting down server: %v", err)
 	}
 
 	close(idleConnsClosed)
