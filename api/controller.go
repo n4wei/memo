@@ -15,7 +15,7 @@ type controller struct {
 	logger   logger.Logger
 }
 
-func NewController(dbClient db.Client, logger logger.Logger) http.Handler {
+func New(dbClient db.Client, logger logger.Logger) http.Handler {
 	memoHandler := memo.NewHandler(dbClient, logger)
 	listHandler := list.NewHandler(dbClient, logger)
 

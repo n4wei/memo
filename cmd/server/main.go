@@ -33,7 +33,7 @@ func main() {
 
 	server := &http.Server{
 		Addr:    ":" + portStr,
-		Handler: api.NewController(dbClient, logger),
+		Handler: api.New(dbClient, logger),
 	}
 
 	idleConnsClosed := make(chan struct{})
