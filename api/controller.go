@@ -3,26 +3,24 @@ package api
 import (
 	"net/http"
 
-	"github.com/n4wei/memo/api/list"
-	"github.com/n4wei/memo/api/memo"
+	"github.com/n4wei/memo/api/handler"
 	"github.com/n4wei/memo/db"
 	"github.com/n4wei/memo/lib/logger"
 )
 
 type controller struct {
 	dbClient db.Client
-	router   *http.ServeMux
+	router   http.Handler
 	logger   logger.Logger
 }
 
 func New(dbClient db.Client, logger logger.Logger) http.Handler {
-	memoHandler := memo.NewHandler(dbClient, logger)
-	listHandler := list.NewHandler(dbClient, logger)
+	userHandler := handler.NewUserHandler(dbClient, logger)
+	memoHandler := handler.NewMemoHandler(dbClient, logger)
 
-	router := http.NewServeMux()
-	router.Handle("/memo", memoHandler)
-	router.Handle("/memo/", memoHandler)
-	router.Handle("/list", listHandler)
+	router := newRouter()
+	router.addRoute("/user", userHandler)
+	router.addRoute("/user/:guid/memo", memoHandler)
 
 	return &controller{
 		dbClient: dbClient,

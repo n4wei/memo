@@ -10,7 +10,7 @@ import (
 
 	"github.com/n4wei/memo/api"
 	"github.com/n4wei/memo/db"
-	"github.com/n4wei/memo/db/memo"
+	"github.com/n4wei/memo/db/cache"
 	"github.com/n4wei/memo/lib/logger"
 )
 
@@ -25,7 +25,7 @@ func main() {
 
 	logger := logger.New()
 
-	dbClient, err := memo.New(logger)
+	dbClient, err := cache.New(logger)
 	if err != nil {
 		logger.Errorf("error starting db client: %v", err)
 		os.Exit(1)
