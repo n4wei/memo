@@ -44,8 +44,9 @@ func (this *userHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	addStandardResponseHeaders(w)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write(data)
 }
 
@@ -63,5 +64,6 @@ func (this *userHandler) handlePut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	addStandardResponseHeaders(w)
 	w.WriteHeader(http.StatusCreated)
 }
