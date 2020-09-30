@@ -5,9 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/n4wei/memo/db"
 	"github.com/n4wei/memo/lib/logger"
@@ -28,6 +26,8 @@ func NewMemoHandler(dbClient db.Client, logger logger.Logger) *memoHandler {
 
 func (this *memoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
+	case http.MethodOptions:
+		this.handleOptions(w, r)
 	case http.MethodGet:
 		this.handleGet(w, r)
 	case http.MethodPut:
@@ -35,6 +35,11 @@ func (this *memoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	default:
 		handleBadRequest(w, r, fmt.Errorf("invalid request method"))
 	}
+}
+
+func (this *memoHandler) handleOptions(w http.ResponseWriter, r *http.Request) {
+	addStandardResponseHeaders(w)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (this *memoHandler) handleGet(w http.ResponseWriter, r *http.Request) {
@@ -75,9 +80,6 @@ func (this *memoHandler) handlePut(w http.ResponseWriter, r *http.Request) {
 		handleBadRequest(w, r, err)
 		return
 	}
-
-	memo.MemoId = strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-	memo.UserId = userId
 
 	added := this.dbClient.AddUserMemo(userId, memo)
 	if !added {

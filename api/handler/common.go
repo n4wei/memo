@@ -23,6 +23,10 @@ func handleRequestBody(r *http.Request, dataModel interface{}) error {
 
 func addStandardResponseHeaders(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET")
+	w.Header().Add("Access-Control-Allow-Methods", "PUT")
+	w.Header().Add("Access-Control-Allow-Methods", "OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
 }
 
 func handleBadRequest(w http.ResponseWriter, r *http.Request, err error) {
